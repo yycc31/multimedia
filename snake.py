@@ -289,6 +289,14 @@ def gameLoop():
             Length_of_snake += 1
             score += 1
 
+            # 新正常食物：避開蛇身 + 障礙物 +（若有）加速/陷阱 + 蛇頭
+            occupied = set((seg[0], seg[1]) for seg in snake_List) | obstacles | {(x1, y1)}
+            if speed_food_x is not None:
+                occupied.add((speed_food_x, speed_food_y))
+            if trap_food_x is not None:
+                occupied.add((trap_food_x, trap_food_y))
+            foodx, foody = rand_grid_pos_excluding(occupied)
+
         # --- 吃紫色食物判定 ---
         if speed_food_x is not None and x1 == speed_food_x and y1 == speed_food_y:
             score += 10
@@ -310,6 +318,11 @@ def gameLoop():
             trap_food_y = None
             pygame.time.set_timer(TRAP_DISAPPEAR, 0)
 
+        if ate_anything:
+            total_eaten += 1
+            maybe_refresh_obstacles_after_eat()
+            refresh_fruits_after_eat()
+        
         clock.tick(SNAKE_SPEED)
 
     # 停止所有計時器
@@ -327,6 +340,7 @@ if __name__ == "__main__":
 
 
 # In[ ]:
+
 
 
 
