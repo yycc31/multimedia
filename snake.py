@@ -31,6 +31,9 @@ SNAKE_BLOCK = 10
 BASE_SPEED = 15
 SNAKE_SPEED = BASE_SPEED
 
+OBSTACLE_COUNT = 2
+OBSTACLE_START_EAT = 5
+
 font_style = pygame.font.SysFont("bahnschrift", 25)
 score_font = pygame.font.SysFont("comicsansms", 35)
 
@@ -270,6 +273,7 @@ if __name__ == "__main__":
 
 
 # In[ ]:
+
 
 
 
