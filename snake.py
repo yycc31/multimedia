@@ -4,7 +4,7 @@
 # In[ ]:
 
 
-# Step 3 - 灰色陷阱：隨機出現時間 + 固定消失
+# Step 2 - 灰色陷阱：固定週期出現 + 幾秒後消失
 import pygame
 import time
 import random
@@ -78,18 +78,17 @@ def gameLoop():
     is_speed_boosted = False
     boost_duration = 5
 
-    # ===== 灰色陷阱 Step3：隨機出現（新）=====
+    # ===== 灰色陷阱 Step2：事件式出現/消失（新）=====
     trap_food_x = None
     trap_food_y = None
 
     TRAP_APPEAR = pygame.USEREVENT + 4
     TRAP_DISAPPEAR = pygame.USEREVENT + 5
 
-    TRAP_SHOW_MS = 2500
-    TRAP_NEXT_MIN_MS = 6000
-    TRAP_NEXT_MAX_MS = 10000
+    TRAP_CYCLE_SEC = 10  # 每 10 秒出現一次
+    TRAP_SHOW_MS = 3000  # 出現 3 秒後消失
 
-    pygame.time.set_timer(TRAP_APPEAR, 7000)  # 第一次 7 秒後出現
+    pygame.time.set_timer(TRAP_APPEAR, TRAP_CYCLE_SEC * 1000)
 
     while not game_over:
 
@@ -114,6 +113,7 @@ def gameLoop():
             if event.type == pygame.QUIT:
                 game_over = True
 
+            # 紫色食物出現
             if event.type == SPEED_FOOD_APPEAR:
                 if speed_food_x is None:
                     speed_food_x = round(random.randrange(0, DIS_WIDTH - SNAKE_BLOCK) / 10.0) * 10.0
@@ -132,16 +132,14 @@ def gameLoop():
                 is_speed_boosted = False
                 pygame.time.set_timer(SPEED_FOOD_BOOST_END, 0)
 
-            # ===== 灰色陷阱出現（隨機下次出現時間）=====
+            # ===== 灰色陷阱出現（固定週期）=====
             elif event.type == TRAP_APPEAR:
                 if trap_food_x is None:
                     trap_food_x = round(random.randrange(0, DIS_WIDTH - SNAKE_BLOCK) / 10.0) * 10.0
                     trap_food_y = round(random.randrange(0, DIS_HEIGHT - SNAKE_BLOCK) / 10.0) * 10.0
                     pygame.time.set_timer(TRAP_DISAPPEAR, TRAP_SHOW_MS)
 
-                next_delay = random.randint(TRAP_NEXT_MIN_MS, TRAP_NEXT_MAX_MS)
-                pygame.time.set_timer(TRAP_APPEAR, next_delay)
-
+            # ===== 灰色陷阱消失 =====
             elif event.type == TRAP_DISAPPEAR:
                 trap_food_x = None
                 trap_food_y = None
@@ -169,6 +167,7 @@ def gameLoop():
         if speed_food_x is not None:
             pygame.draw.rect(dis, PURPLE, [speed_food_x, speed_food_y, SNAKE_BLOCK, SNAKE_BLOCK])
 
+        # 畫灰色陷阱（若存在）
         if trap_food_x is not None:
             pygame.draw.rect(dis, GRAY, [trap_food_x, trap_food_y, SNAKE_BLOCK, SNAKE_BLOCK])
 
