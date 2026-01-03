@@ -264,9 +264,7 @@ def gameLoop():
             pygame.draw.rect(dis, GRAY, [trap_food_x, trap_food_y, SNAKE_BLOCK, SNAKE_BLOCK])
 
         # 更新蛇的身體
-        snake_Head = []
-        snake_Head.append(x1)
-        snake_Head.append(y1)
+        snake_Head = [x1, y1]
         snake_List.append(snake_Head)
 
         if len(snake_List) > Length_of_snake:
@@ -329,6 +327,7 @@ if __name__ == "__main__":
 
 
 # In[ ]:
+
 
 
 
