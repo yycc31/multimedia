@@ -1,4 +1,10 @@
-#5使用週期性生成紫色食物出現/消失事件
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[ ]:
+
+
+# Step 1 - 只加灰色陷阱方塊（固定存在、先畫出來）
 import pygame
 import time
 import random
@@ -14,6 +20,7 @@ RED = (213, 50, 80)    # 正常食物顏色
 GREEN = (0, 255, 0)
 BLUE = (50, 153, 213)
 PURPLE = (128, 0, 128) # 加速果實顏色
+GRAY = (120, 120, 120) # 灰色陷阱（新）
 
 # --- 螢幕設定 ---
 DIS_WIDTH = 600
@@ -44,7 +51,7 @@ def message(msg, color):
 
 def gameLoop():
     global SNAKE_SPEED
-    
+
     game_over = False
     game_close = False
 
@@ -68,7 +75,7 @@ def gameLoop():
     speed_food_x = None  # 紫色食物 X 座標
     speed_food_y = None  # 紫色食物 Y 座標
     speed_food_delay = 10 # 初始出現間隔 (秒)
-    
+
     # 自訂事件
     SPEED_FOOD_APPEAR = pygame.USEREVENT + 1  # 紫色食物出現事件
     SPEED_FOOD_DISAPPEAR = pygame.USEREVENT + 2  # 紫色食物消失事件
@@ -79,6 +86,10 @@ def gameLoop():
 
     is_speed_boosted = False
     boost_duration = 5 # 加速持續時間 (秒)
+
+    # ===== 灰色陷阱 Step1：固定生成一顆（新）=====
+    trap_food_x = round(random.randrange(0, DIS_WIDTH - SNAKE_BLOCK) / 10.0) * 10.0
+    trap_food_y = round(random.randrange(0, DIS_HEIGHT - SNAKE_BLOCK) / 10.0) * 10.0
 
     while not game_over:
 
@@ -103,7 +114,7 @@ def gameLoop():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 game_over = True
-            
+
             # 紫色食物出現
             if event.type == SPEED_FOOD_APPEAR:
                 if speed_food_x is None:
@@ -145,24 +156,27 @@ def gameLoop():
         # --- 邊界檢查 (撞牆) ---
         if x1 >= DIS_WIDTH or x1 < 0 or y1 >= DIS_HEIGHT or y1 < 0:
             game_close = True
-        
+
         x1 += x1_change
         y1 += y1_change
         dis.fill(BLACK)
-        
+
         # 畫紅色食物
         pygame.draw.rect(dis, RED, [foodx, foody, SNAKE_BLOCK, SNAKE_BLOCK])
 
         # 畫紫色食物 (如果存在)
         if speed_food_x is not None:
             pygame.draw.rect(dis, PURPLE, [speed_food_x, speed_food_y, SNAKE_BLOCK, SNAKE_BLOCK])
-        
+
+        # ===== 畫灰色陷阱（固定存在）=====
+        pygame.draw.rect(dis, GRAY, [trap_food_x, trap_food_y, SNAKE_BLOCK, SNAKE_BLOCK])
+
         # 更新蛇的身體
         snake_Head = []
         snake_Head.append(x1)
         snake_Head.append(y1)
         snake_List.append(snake_Head)
-        
+
         if len(snake_List) > Length_of_snake:
             del snake_List[0]
 
@@ -212,3 +226,10 @@ def gameLoop():
 # 啟動遊戲
 if __name__ == "__main__":
     gameLoop()
+
+
+# In[ ]:
+
+
+
+
