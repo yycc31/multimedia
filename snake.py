@@ -4,7 +4,7 @@
 # In[ ]:
 
 
-# Step 3 - 灰色陷阱：隨機出現時間 + 固定消失
+# Step 4 - 灰色陷阱：吃到扣分 + 立刻消失
 import pygame
 import time
 import random
@@ -59,26 +59,29 @@ def gameLoop():
     Length_of_snake = 1
     score = 0
 
-    SNAKE_SPEED = BASE_SPEED
+    SNAKE_SPEED = BASE_SPEED  # 重新設定初始速度
 
+    # --- 正常食物 ---
     foodx = round(random.randrange(0, DIS_WIDTH - SNAKE_BLOCK) / 10.0) * 10.0
     foody = round(random.randrange(0, DIS_HEIGHT - SNAKE_BLOCK) / 10.0) * 10.0
 
     # --- 加速果實  ---
-    speed_food_x = None
-    speed_food_y = None
-    speed_food_delay = 10
+    speed_food_x = None  # 紫色食物 X 座標
+    speed_food_y = None  # 紫色食物 Y 座標
+    speed_food_delay = 10 # 初始出現間隔 (秒)
 
-    SPEED_FOOD_APPEAR = pygame.USEREVENT + 1
-    SPEED_FOOD_DISAPPEAR = pygame.USEREVENT + 2
-    SPEED_FOOD_BOOST_END = pygame.USEREVENT + 3
+    # 自訂事件
+    SPEED_FOOD_APPEAR = pygame.USEREVENT + 1  # 紫色食物出現事件
+    SPEED_FOOD_DISAPPEAR = pygame.USEREVENT + 2  # 紫色食物消失事件
+    SPEED_FOOD_BOOST_END = pygame.USEREVENT + 3  # 加速結束事件
 
+    # 設置紫色食物第一次出現的計時器
     pygame.time.set_timer(SPEED_FOOD_APPEAR, speed_food_delay * 1000) 
 
     is_speed_boosted = False
-    boost_duration = 5
+    boost_duration = 5 # 加速持續時間 (秒)
 
-    # ===== 灰色陷阱 Step3：隨機出現（新）=====
+    # ===== 灰色陷阱 Step4 =====
     trap_food_x = None
     trap_food_y = None
 
@@ -88,8 +91,9 @@ def gameLoop():
     TRAP_SHOW_MS = 2500
     TRAP_NEXT_MIN_MS = 6000
     TRAP_NEXT_MAX_MS = 10000
+    TRAP_PENALTY = 5  # 扣 5 分
 
-    pygame.time.set_timer(TRAP_APPEAR, 7000)  # 第一次 7 秒後出現
+    pygame.time.set_timer(TRAP_APPEAR, 7000)
 
     while not game_over:
 
@@ -110,29 +114,35 @@ def gameLoop():
                     game_over = True
                     game_close = False
 
+        # --- 事件處理 ---
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 game_over = True
 
+            # 紫色食物出現
             if event.type == SPEED_FOOD_APPEAR:
                 if speed_food_x is None:
                     speed_food_x = round(random.randrange(0, DIS_WIDTH - SNAKE_BLOCK) / 10.0) * 10.0
                     speed_food_y = round(random.randrange(0, DIS_HEIGHT - SNAKE_BLOCK) / 10.0) * 10.0
+                    # 出現後3秒自動消失
                     pygame.time.set_timer(SPEED_FOOD_DISAPPEAR, 3000)
+                # 隨機設定下一次出現間隔 (8~12秒)
                 new_delay = random.randint(8, 12)
                 pygame.time.set_timer(SPEED_FOOD_APPEAR, new_delay * 1000)
 
+            # 紫色食物消失
             elif event.type == SPEED_FOOD_DISAPPEAR:
                 speed_food_x = None
                 speed_food_y = None
                 pygame.time.set_timer(SPEED_FOOD_DISAPPEAR, 0)
 
+            # 加速結束，恢復原速
             elif event.type == SPEED_FOOD_BOOST_END:
                 SNAKE_SPEED = BASE_SPEED
                 is_speed_boosted = False
                 pygame.time.set_timer(SPEED_FOOD_BOOST_END, 0)
 
-            # ===== 灰色陷阱出現（隨機下次出現時間）=====
+            # ===== 灰色陷阱出現/消失 =====
             elif event.type == TRAP_APPEAR:
                 if trap_food_x is None:
                     trap_food_x = round(random.randrange(0, DIS_WIDTH - SNAKE_BLOCK) / 10.0) * 10.0
@@ -147,15 +157,20 @@ def gameLoop():
                 trap_food_y = None
                 pygame.time.set_timer(TRAP_DISAPPEAR, 0)
 
+            # 按鍵控制
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
-                    x1_change = -SNAKE_BLOCK; y1_change = 0
+                    x1_change = -SNAKE_BLOCK
+                    y1_change = 0
                 elif event.key == pygame.K_RIGHT:
-                    x1_change = SNAKE_BLOCK; y1_change = 0
+                    x1_change = SNAKE_BLOCK
+                    y1_change = 0
                 elif event.key == pygame.K_UP:
-                    y1_change = -SNAKE_BLOCK; x1_change = 0
+                    y1_change = -SNAKE_BLOCK
+                    x1_change = 0
                 elif event.key == pygame.K_DOWN:
-                    y1_change = SNAKE_BLOCK; x1_change = 0
+                    y1_change = SNAKE_BLOCK
+                    x1_change = 0
 
         if x1 >= DIS_WIDTH or x1 < 0 or y1 >= DIS_HEIGHT or y1 < 0:
             game_close = True
@@ -172,7 +187,9 @@ def gameLoop():
         if trap_food_x is not None:
             pygame.draw.rect(dis, GRAY, [trap_food_x, trap_food_y, SNAKE_BLOCK, SNAKE_BLOCK])
 
-        snake_Head = [x1, y1]
+        snake_Head = []
+        snake_Head.append(x1)
+        snake_Head.append(y1)
         snake_List.append(snake_Head)
 
         if len(snake_List) > Length_of_snake:
@@ -204,6 +221,13 @@ def gameLoop():
             speed_food_y = None
             pygame.time.set_timer(SPEED_FOOD_DISAPPEAR, 0)
 
+        # ===== 吃到灰色陷阱：扣分 + 立即消失（新）=====
+        if trap_food_x is not None and x1 == trap_food_x and y1 == trap_food_y:
+            score = max(0, score - TRAP_PENALTY)
+            trap_food_x = None
+            trap_food_y = None
+            pygame.time.set_timer(TRAP_DISAPPEAR, 0)
+
         clock.tick(SNAKE_SPEED)
 
     pygame.time.set_timer(SPEED_FOOD_APPEAR, 0)
@@ -217,6 +241,7 @@ def gameLoop():
 
 if __name__ == "__main__":
     gameLoop()
+
 
 
 # In[ ]:
