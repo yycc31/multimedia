@@ -135,6 +135,21 @@ def gameLoop():
             trap_pos=trap_pos
         )
         obstacles = spawn_obstacles(OBSTACLE_COUNT, occupied)
+
+     def refresh_fruits_after_eat():
+        nonlocal speed_food_x, speed_food_y, trap_food_x, trap_food_y
+
+        occupied = set((seg[0], seg[1]) for seg in snake_List)
+        occupied |= obstacles
+        occupied.add((x1, y1))
+        occupied.add((foodx, foody))
+
+        # 先生成加速果實
+        speed_food_x, speed_food_y = rand_grid_pos_excluding(occupied)
+        occupied.add((speed_food_x, speed_food_y))
+
+        # 再生成陷阱食物（避免跟加速果實重疊）
+        trap_food_x, trap_food_y = rand_grid_pos_excluding(occupied)
     
     # ===== 灰色陷阱 Step5（最終）=====
     trap_food_x = None
@@ -314,6 +329,7 @@ if __name__ == "__main__":
 
 
 # In[ ]:
+
 
 
 
