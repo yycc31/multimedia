@@ -1,4 +1,4 @@
-#1
+#增加紫色方塊
 import pygame
 import time
 import random
@@ -13,6 +13,7 @@ BLACK = (0, 0, 0)
 RED = (213, 50, 80)
 GREEN = (0, 255, 0)
 BLUE = (50, 153, 213)
+PURPLE = (128, 0, 128)  # 新增紫色食物顏色
 
 # --- 螢幕設定 ---
 DIS_WIDTH = 600
@@ -28,7 +29,6 @@ SNAKE_BLOCK = 10  # 蛇的大小
 SNAKE_SPEED = 15  # 蛇的移動速度
 
 # --- 字型設定 ---
-# 嘗試使用系統字體，若無則使用默認
 font_style = pygame.font.SysFont("bahnschrift", 25)
 score_font = pygame.font.SysFont("comicsansms", 35)
 
@@ -37,9 +37,7 @@ def your_score(score):
     dis.blit(value, [0, 0])
 
 def message(msg, color):
-    # 為了避免字體問題，將訊息置中顯示
     mesg = font_style.render(msg, True, color)
-    # 計算置中位置
     text_rect = mesg.get_rect(center=(DIS_WIDTH/2, DIS_HEIGHT/2))
     dis.blit(mesg, text_rect)
 
@@ -47,7 +45,6 @@ def gameLoop():
     game_over = False
     game_close = False
 
-    # 初始位置 (螢幕中間)
     x1 = DIS_WIDTH / 2
     y1 = DIS_HEIGHT / 2
 
@@ -57,13 +54,16 @@ def gameLoop():
     snake_List = []
     Length_of_snake = 1
 
-    # 隨機產生第一個食物位置
+    # 隨機產生第一個紅色食物位置
     foodx = round(random.randrange(0, DIS_WIDTH - SNAKE_BLOCK) / 10.0) * 10.0
     foody = round(random.randrange(0, DIS_HEIGHT - SNAKE_BLOCK) / 10.0) * 10.0
 
+    # 隨機產生第一個紫色食物位置
+    speed_food_x = round(random.randrange(0, DIS_WIDTH - SNAKE_BLOCK) / 10.0) * 10.0
+    speed_food_y = round(random.randrange(0, DIS_HEIGHT - SNAKE_BLOCK) / 10.0) * 10.0
+
     while not game_over:
 
-        # --- 遊戲結束畫面 (按 Q 退出 / 按 C 重玩) ---
         while game_close == True:
             dis.fill(BLACK)
             message("Game Over! Press C-Play Again or Q-Quit", RED)
@@ -77,6 +77,9 @@ def gameLoop():
                         game_close = False
                     if event.key == pygame.K_c:
                         gameLoop()
+                if event.type == pygame.QUIT:
+                    game_over = True
+                    game_close = False
 
         # --- 按鍵控制 ---
         for event in pygame.event.get():
@@ -104,16 +107,17 @@ def gameLoop():
         y1 += y1_change
         dis.fill(BLACK)
         
-        # 畫食物
+        # 畫紅色食物
         pygame.draw.rect(dis, RED, [foodx, foody, SNAKE_BLOCK, SNAKE_BLOCK])
-        
+        # 畫紫色食物
+        pygame.draw.rect(dis, PURPLE, [speed_food_x, speed_food_y, SNAKE_BLOCK, SNAKE_BLOCK])
+
         # 更新蛇的身體
         snake_Head = []
         snake_Head.append(x1)
         snake_Head.append(y1)
         snake_List.append(snake_Head)
         
-        # 如果蛇的長度超過當前應有的長度，刪除尾巴 (保持移動)
         if len(snake_List) > Length_of_snake:
             del snake_List[0]
 
@@ -129,10 +133,16 @@ def gameLoop():
         your_score(Length_of_snake - 1)
         pygame.display.update()
 
-        # --- 吃食物判定 ---
+        # --- 吃紅色食物判定 ---
         if x1 == foodx and y1 == foody:
             foodx = round(random.randrange(0, DIS_WIDTH - SNAKE_BLOCK) / 10.0) * 10.0
             foody = round(random.randrange(0, DIS_HEIGHT - SNAKE_BLOCK) / 10.0) * 10.0
+            Length_of_snake += 1
+
+        # --- 吃紫色食物判定 ---
+        if x1 == speed_food_x and y1 == speed_food_y:
+            speed_food_x = round(random.randrange(0, DIS_WIDTH - SNAKE_BLOCK) / 10.0) * 10.0
+            speed_food_y = round(random.randrange(0, DIS_HEIGHT - SNAKE_BLOCK) / 10.0) * 10.0
             Length_of_snake += 1
 
         clock.tick(SNAKE_SPEED)
