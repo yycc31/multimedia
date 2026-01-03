@@ -1,4 +1,4 @@
-#4吃到紫色食物加10分
+#5使用週期性生成紫色食物出現/消失事件
 import pygame
 import time
 import random
@@ -10,10 +10,10 @@ pygame.init()
 WHITE = (255, 255, 255)
 YELLOW = (255, 255, 102)
 BLACK = (0, 0, 0)
-RED = (213, 50, 80)
+RED = (213, 50, 80)    # 正常食物顏色
 GREEN = (0, 255, 0)
 BLUE = (50, 153, 213)
-PURPLE = (128, 0, 128)
+PURPLE = (128, 0, 128) # 加速果實顏色
 
 # --- 螢幕設定 ---
 DIS_WIDTH = 600
@@ -26,7 +26,8 @@ clock = pygame.time.Clock()
 
 # --- 蛇的參數 ---
 SNAKE_BLOCK = 10 
-SNAKE_SPEED = 15  # 初始速度
+BASE_SPEED = 15     # 基礎速度
+SNAKE_SPEED = BASE_SPEED # 當前速度
 
 # --- 字型設定 ---
 font_style = pygame.font.SysFont("bahnschrift", 25)
@@ -42,7 +43,7 @@ def message(msg, color):
     dis.blit(mesg, text_rect)
 
 def gameLoop():
-    global SNAKE_SPEED  # 允許修改全域速度
+    global SNAKE_SPEED
     
     game_over = False
     game_close = False
@@ -55,22 +56,36 @@ def gameLoop():
 
     snake_List = []
     Length_of_snake = 1
-    score = 0  # 新增分數變數
+    score = 0
 
-    # 隨機產生第一個紅色食物位置
+    SNAKE_SPEED = BASE_SPEED  # 重新設定初始速度
+
+    # --- 正常食物 ---
     foodx = round(random.randrange(0, DIS_WIDTH - SNAKE_BLOCK) / 10.0) * 10.0
     foody = round(random.randrange(0, DIS_HEIGHT - SNAKE_BLOCK) / 10.0) * 10.0
 
-    # 隨機產生第一個紫色食物位置
-    speed_food_x = round(random.randrange(0, DIS_WIDTH - SNAKE_BLOCK) / 10.0) * 10.0
-    speed_food_y = round(random.randrange(0, DIS_HEIGHT - SNAKE_BLOCK) / 10.0) * 10.0
+    # --- 加速果實  ---
+    speed_food_x = None  # 紫色食物 X 座標
+    speed_food_y = None  # 紫色食物 Y 座標
+    speed_food_delay = 10 # 初始出現間隔 (秒)
+    
+    # 自訂事件
+    SPEED_FOOD_APPEAR = pygame.USEREVENT + 1  # 紫色食物出現事件
+    SPEED_FOOD_DISAPPEAR = pygame.USEREVENT + 2  # 紫色食物消失事件
+    SPEED_FOOD_BOOST_END = pygame.USEREVENT + 3  # 加速結束事件
+
+    # 設置紫色食物第一次出現的計時器
+    pygame.time.set_timer(SPEED_FOOD_APPEAR, speed_food_delay * 1000) 
+
+    is_speed_boosted = False
+    boost_duration = 5 # 加速持續時間 (秒)
 
     while not game_over:
 
         while game_close == True:
             dis.fill(BLACK)
             message("Game Over! Press C-Play Again or Q-Quit", RED)
-            your_score(score)  # 顯示分數
+            your_score(score)
             pygame.display.update()
 
             for event in pygame.event.get():
@@ -84,10 +99,35 @@ def gameLoop():
                     game_over = True
                     game_close = False
 
-        # --- 按鍵控制 ---
+        # --- 事件處理 ---
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 game_over = True
+            
+            # 紫色食物出現
+            if event.type == SPEED_FOOD_APPEAR:
+                if speed_food_x is None:
+                    speed_food_x = round(random.randrange(0, DIS_WIDTH - SNAKE_BLOCK) / 10.0) * 10.0
+                    speed_food_y = round(random.randrange(0, DIS_HEIGHT - SNAKE_BLOCK) / 10.0) * 10.0
+                    # 出現後3秒自動消失
+                    pygame.time.set_timer(SPEED_FOOD_DISAPPEAR, 3000)
+                # 隨機設定下一次出現間隔 (8~12秒)
+                new_delay = random.randint(8, 12)
+                pygame.time.set_timer(SPEED_FOOD_APPEAR, new_delay * 1000)
+
+            # 紫色食物消失
+            elif event.type == SPEED_FOOD_DISAPPEAR:
+                speed_food_x = None
+                speed_food_y = None
+                pygame.time.set_timer(SPEED_FOOD_DISAPPEAR, 0)
+
+            # 加速結束，恢復原速
+            elif event.type == SPEED_FOOD_BOOST_END:
+                SNAKE_SPEED = BASE_SPEED
+                is_speed_boosted = False
+                pygame.time.set_timer(SPEED_FOOD_BOOST_END, 0)
+
+            # 按鍵控制
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
                     x1_change = -SNAKE_BLOCK
@@ -112,9 +152,11 @@ def gameLoop():
         
         # 畫紅色食物
         pygame.draw.rect(dis, RED, [foodx, foody, SNAKE_BLOCK, SNAKE_BLOCK])
-        # 畫紫色食物
-        pygame.draw.rect(dis, PURPLE, [speed_food_x, speed_food_y, SNAKE_BLOCK, SNAKE_BLOCK])
 
+        # 畫紫色食物 (如果存在)
+        if speed_food_x is not None:
+            pygame.draw.rect(dis, PURPLE, [speed_food_x, speed_food_y, SNAKE_BLOCK, SNAKE_BLOCK])
+        
         # 更新蛇的身體
         snake_Head = []
         snake_Head.append(x1)
@@ -133,7 +175,7 @@ def gameLoop():
         for x in snake_List:
             pygame.draw.rect(dis, GREEN, [x[0], x[1], SNAKE_BLOCK, SNAKE_BLOCK])
 
-        your_score(score)  # 顯示分數
+        your_score(score)
         pygame.display.update()
 
         # --- 吃紅色食物判定 ---
@@ -141,17 +183,28 @@ def gameLoop():
             foodx = round(random.randrange(0, DIS_WIDTH - SNAKE_BLOCK) / 10.0) * 10.0
             foody = round(random.randrange(0, DIS_HEIGHT - SNAKE_BLOCK) / 10.0) * 10.0
             Length_of_snake += 1
-            score += 1  # 紅色食物加 1 分
+            score += 1
 
-        # --- 吃紫色食物判定 (加速並加分) ---
-        if x1 == speed_food_x and y1 == speed_food_y:
-            speed_food_x = round(random.randrange(0, DIS_WIDTH - SNAKE_BLOCK) / 10.0) * 10.0
-            speed_food_y = round(random.randrange(0, DIS_HEIGHT - SNAKE_BLOCK) / 10.0) * 10.0
+        # --- 吃紫色食物判定 ---
+        if speed_food_x is not None and x1 == speed_food_x and y1 == speed_food_y:
+            score += 10
             Length_of_snake += 1
-            SNAKE_SPEED += 5  # 吃到紫色食物後加速
-            score += 10  # 紫色食物加 10 分
+            # 觸發加速
+            SNAKE_SPEED = BASE_SPEED + 5
+            is_speed_boosted = True
+            # 設置5秒後加速結束
+            pygame.time.set_timer(SPEED_FOOD_BOOST_END, boost_duration * 1000)
+            # 移除紫色食物
+            speed_food_x = None
+            speed_food_y = None
+            pygame.time.set_timer(SPEED_FOOD_DISAPPEAR, 0)
 
         clock.tick(SNAKE_SPEED)
+
+    # 停止所有計時器
+    pygame.time.set_timer(SPEED_FOOD_APPEAR, 0)
+    pygame.time.set_timer(SPEED_FOOD_DISAPPEAR, 0)
+    pygame.time.set_timer(SPEED_FOOD_BOOST_END, 0)
 
     pygame.quit()
     quit()
