@@ -56,6 +56,24 @@ def rand_grid_pos_excluding(occupied):
         x, y = rand_grid_pos()
         if (x, y) not in occupied:
             return x, y
+            
+def spawn_obstacles(count, occupied):
+    obstacles = set()
+    while len(obstacles) < count:
+        pos = rand_grid_pos()
+        if pos not in occupied:
+            obstacles.add(pos)
+    return obstacles
+
+def build_occupied_for_obstacles(snake_List, head_pos, food_pos, speed_pos, trap_pos):
+    occupied = set((seg[0], seg[1]) for seg in snake_List)
+    occupied.add(head_pos)
+    occupied.add(food_pos)
+    if speed_pos is not None:
+        occupied.add(speed_pos)
+    if trap_pos is not None:
+        occupied.add(trap_pos)
+    return occupied
 
 def gameLoop():
     global SNAKE_SPEED
@@ -273,6 +291,7 @@ if __name__ == "__main__":
 
 
 # In[ ]:
+
 
 
 
