@@ -1,4 +1,4 @@
-#3吃到紫色食物提升速度
+#4吃到紫色食物加10分
 import pygame
 import time
 import random
@@ -13,7 +13,7 @@ BLACK = (0, 0, 0)
 RED = (213, 50, 80)
 GREEN = (0, 255, 0)
 BLUE = (50, 153, 213)
-PURPLE = (128, 0, 128)  # 紫色食物顏色
+PURPLE = (128, 0, 128)
 
 # --- 螢幕設定 ---
 DIS_WIDTH = 600
@@ -42,7 +42,7 @@ def message(msg, color):
     dis.blit(mesg, text_rect)
 
 def gameLoop():
-    global SNAKE_SPEED  # 允許在函式內修改全域速度
+    global SNAKE_SPEED  # 允許修改全域速度
     
     game_over = False
     game_close = False
@@ -55,6 +55,7 @@ def gameLoop():
 
     snake_List = []
     Length_of_snake = 1
+    score = 0  # 新增分數變數
 
     # 隨機產生第一個紅色食物位置
     foodx = round(random.randrange(0, DIS_WIDTH - SNAKE_BLOCK) / 10.0) * 10.0
@@ -69,7 +70,7 @@ def gameLoop():
         while game_close == True:
             dis.fill(BLACK)
             message("Game Over! Press C-Play Again or Q-Quit", RED)
-            your_score(Length_of_snake - 1)
+            your_score(score)  # 顯示分數
             pygame.display.update()
 
             for event in pygame.event.get():
@@ -132,7 +133,7 @@ def gameLoop():
         for x in snake_List:
             pygame.draw.rect(dis, GREEN, [x[0], x[1], SNAKE_BLOCK, SNAKE_BLOCK])
 
-        your_score(Length_of_snake - 1)
+        your_score(score)  # 顯示分數
         pygame.display.update()
 
         # --- 吃紅色食物判定 ---
@@ -140,13 +141,15 @@ def gameLoop():
             foodx = round(random.randrange(0, DIS_WIDTH - SNAKE_BLOCK) / 10.0) * 10.0
             foody = round(random.randrange(0, DIS_HEIGHT - SNAKE_BLOCK) / 10.0) * 10.0
             Length_of_snake += 1
+            score += 1  # 紅色食物加 1 分
 
-        # --- 吃紫色食物判定 (加速) ---
+        # --- 吃紫色食物判定 (加速並加分) ---
         if x1 == speed_food_x and y1 == speed_food_y:
             speed_food_x = round(random.randrange(0, DIS_WIDTH - SNAKE_BLOCK) / 10.0) * 10.0
             speed_food_y = round(random.randrange(0, DIS_HEIGHT - SNAKE_BLOCK) / 10.0) * 10.0
             Length_of_snake += 1
             SNAKE_SPEED += 5  # 吃到紫色食物後加速
+            score += 10  # 紫色食物加 10 分
 
         clock.tick(SNAKE_SPEED)
 
