@@ -93,6 +93,8 @@ def gameLoop():
 
     SNAKE_SPEED = BASE_SPEED  # 重新設定初始速度
 
+    obstacles = set()
+
     # --- 正常食物 ---
     foodx = round(random.randrange(0, DIS_WIDTH - SNAKE_BLOCK) / 10.0) * 10.0
     foody = round(random.randrange(0, DIS_HEIGHT - SNAKE_BLOCK) / 10.0) * 10.0
@@ -113,6 +115,27 @@ def gameLoop():
     is_speed_boosted = False
     boost_duration = 5 # 加速持續時間 (秒)
 
+    def maybe_refresh_obstacles_after_eat():
+        nonlocal obstacles
+
+        if total_eaten < OBSTACLE_START_EAT:
+            obstacles = set()
+            return
+
+        head_pos = (x1, y1)
+        food_pos = (foodx, foody)
+        speed_pos = (speed_food_x, speed_food_y) if speed_food_x is not None else None
+        trap_pos = (trap_food_x, trap_food_y) if trap_food_x is not None else None
+
+        occupied = build_occupied_for_obstacles(
+            snake_List=snake_List,
+            head_pos=head_pos,
+            food_pos=food_pos,
+            speed_pos=speed_pos,
+            trap_pos=trap_pos
+        )
+        obstacles = spawn_obstacles(OBSTACLE_COUNT, occupied)
+    
     # ===== 灰色陷阱 Step5（最終）=====
     trap_food_x = None
     trap_food_y = None
@@ -291,6 +314,7 @@ if __name__ == "__main__":
 
 
 # In[ ]:
+
 
 
 
