@@ -1,4 +1,4 @@
-#增加紫色方塊
+#3吃到紫色食物提升速度
 import pygame
 import time
 import random
@@ -13,7 +13,7 @@ BLACK = (0, 0, 0)
 RED = (213, 50, 80)
 GREEN = (0, 255, 0)
 BLUE = (50, 153, 213)
-PURPLE = (128, 0, 128)  # 新增紫色食物顏色
+PURPLE = (128, 0, 128)  # 紫色食物顏色
 
 # --- 螢幕設定 ---
 DIS_WIDTH = 600
@@ -25,8 +25,8 @@ pygame.display.set_caption('Python 貪吃蛇遊戲')
 clock = pygame.time.Clock()
 
 # --- 蛇的參數 ---
-SNAKE_BLOCK = 10  # 蛇的大小
-SNAKE_SPEED = 15  # 蛇的移動速度
+SNAKE_BLOCK = 10 
+SNAKE_SPEED = 15  # 初始速度
 
 # --- 字型設定 ---
 font_style = pygame.font.SysFont("bahnschrift", 25)
@@ -42,6 +42,8 @@ def message(msg, color):
     dis.blit(mesg, text_rect)
 
 def gameLoop():
+    global SNAKE_SPEED  # 允許在函式內修改全域速度
+    
     game_over = False
     game_close = False
 
@@ -139,11 +141,12 @@ def gameLoop():
             foody = round(random.randrange(0, DIS_HEIGHT - SNAKE_BLOCK) / 10.0) * 10.0
             Length_of_snake += 1
 
-        # --- 吃紫色食物判定 ---
+        # --- 吃紫色食物判定 (加速) ---
         if x1 == speed_food_x and y1 == speed_food_y:
             speed_food_x = round(random.randrange(0, DIS_WIDTH - SNAKE_BLOCK) / 10.0) * 10.0
             speed_food_y = round(random.randrange(0, DIS_HEIGHT - SNAKE_BLOCK) / 10.0) * 10.0
             Length_of_snake += 1
+            SNAKE_SPEED += 5  # 吃到紫色食物後加速
 
         clock.tick(SNAKE_SPEED)
 
