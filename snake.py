@@ -51,10 +51,10 @@ def rand_grid_pos():
     y = round(random.randrange(0, DIS_HEIGHT - SNAKE_BLOCK) / 10.0) * 10.0
     return x, y
 
-def rand_grid_pos_avoid(avoid_set):
+def rand_grid_pos_excluding(occupied):
     while True:
         x, y = rand_grid_pos()
-        if (x, y) not in avoid_set:
+        if (x, y) not in occupied:
             return x, y
 
 def gameLoop():
@@ -273,6 +273,7 @@ if __name__ == "__main__":
 
 
 # In[ ]:
+
 
 
 
